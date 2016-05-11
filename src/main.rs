@@ -14,7 +14,7 @@ use rusqlite::Connection;
 use rustc_serialize::json;
 
 fn say_hello(req: &mut Request) -> IronResult<Response> {
-	let message = "Hello world!";
+	let message = "Hello basacdacu!";
 	let mut response = Response::with((status::Ok, message));
 	Ok(response)
 }
