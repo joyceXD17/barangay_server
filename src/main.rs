@@ -33,13 +33,17 @@ struct Person{
 
 fn get_data(req: &mut Request) -> IronResult<Response> {
 	let con = Connection::open("baranggay.db");
+	let page = req.extensions.get::<Router>().unwrap().find("page").unwrap();
+	let page:i32 = page.parse().unwrap();
+	let page_size = 5;
+	let offset = page_size * page;
 	match con{
 		Ok(con) => {
 			println!("connected!");
-			let sql = "SELECT person_id, firstname, lastname, 
-					age, pic, status, occupation 
-			FROM person";
-			let mut stmt = con.prepare(sql).unwrap();
+			let sql = format!("SELECT person_id, firstname, lastname, 
+					age, pic, status, occupation
+			FROM person limit {} offset {}",page_size, offset);
+			let mut stmt = con.prepare(&sql).unwrap();
 			let mut persons:Vec<Person> = vec![];
 			let mut person_iter = stmt.query_map(&[], |row|
 				{
@@ -89,7 +93,7 @@ fn search_data(req: &mut Request) -> IronResult<Response> {
 		Ok(con) => {
 			println!("connected!");
 			let sql = format!("SELECT person_id, firstname, lastname, 
-					age, pic, status, occupation 
+					age, pic, status, occupation  
 			FROM person 
 			WHERE lastname LIKE '{}%' ",needle);
 			let mut stmt = con.prepare(&sql).unwrap();
@@ -127,7 +131,7 @@ fn search_data(req: &mut Request) -> IronResult<Response> {
 fn main() {
 	let mut router = Router::new();
 	router.get("/", say_hello);
-	router.get("/data", get_data);
+	router.get("/data/:page", get_data);
 	router.get("/search/:needle", search_data);
 
 	let mut middleware = Chain::new(router);
